@@ -5,6 +5,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.IO;
+using System.IO.IsolatedStorage;
 
 public static class Program
 {
@@ -35,7 +37,7 @@ public static class Program
             delegate* unmanaged<void> unmanagedPtr = &OnButtonClick;
             ios_register_button_click(unmanagedPtr);
         }
-        const string msg = "Hello World!\n.NET 5.0";
+        const string msg = "Hello World!\n.NET 5.0";        
         for (int i = 0; i < msg.Length; i++)
         {
             // a kind of an animation
@@ -44,6 +46,15 @@ public static class Program
         }
 
         Console.WriteLine("Done!");
+        /*  using (IsolatedStorageFile store = IsolatedStorageFile.GetUserStoreForApplication()) {
+                using (IsolatedStorageFileStream stream = store.OpenFile("settings.txt", FileMode.Create)) {
+                    //string root = store.GetUserRootDirectory();
+                    //Assert.EndsWith(@"AppFiles" + Path.DirectorySeparatorChar, root);
+                    //Assert.True(Directory.Exists(root), "store root folder should exist");
+                    System.Diagnostics.Debug.Write("GetUserStoreForApplication test result is ");
+                    //System.Diagnostics.Debug.Write(@"AppFiles" + Path.DirectorySeparatorChar, root);
+                }
+            }*/
 #if CI_TEST
         await Task.Delay(5000);
         return 42;

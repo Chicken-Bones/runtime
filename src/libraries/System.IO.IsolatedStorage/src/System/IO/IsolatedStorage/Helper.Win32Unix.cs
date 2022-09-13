@@ -61,6 +61,7 @@ namespace System.IO.IsolatedStorage
                 {
                     hash = "StrongName" + separator + hash;
                     identity = assemblyName;
+                    System.Diagnostics.Debug.Write("GetDefaultIdentityAndHash StrongName hash = " + hash);
                     return;
                 }
                 else
@@ -74,9 +75,13 @@ namespace System.IO.IsolatedStorage
                 location = Environment.ProcessPath;
             if (string.IsNullOrEmpty(location))
                 throw new IsolatedStorageException(SR.IsolatedStorage_Init);
+
+            System.Diagnostics.Debug.Write("GetDefaultIdentityAndHash after location = " + location);
             Uri locationUri = new Uri(location);
             hash = "Url" + separator + IdentityHelper.GetNormalizedUriHash(locationUri);
+            System.Diagnostics.Debug.Write("GetDefaultIdentityAndHash Url hash = " + hash);
             identity = locationUri;
+            System.Diagnostics.Debug.Write("GetDefaultIdentityAndHash Changed  ");
         }
 
         internal static string GetRandomDirectory(string rootDirectory, IsolatedStorageScope scope)

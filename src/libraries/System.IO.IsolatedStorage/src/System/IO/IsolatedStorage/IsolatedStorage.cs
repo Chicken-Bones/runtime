@@ -16,7 +16,7 @@ namespace System.IO.IsolatedStorage
 
         protected IsolatedStorage() { }
 
-        public object ApplicationIdentity
+      public object ApplicationIdentity
         {
             get
             {

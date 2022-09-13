@@ -43,12 +43,12 @@ namespace System.IO.IsolatedStorage
             // InitStore will set up the IdentityHash
             InitStore(scope, null, null);
 
-            StringBuilder sb = new StringBuilder(Helper.GetRootDirectory(scope));
+            StringBuilder sb = new StringBuilder(GetIsolatedStorageRoot(scope));//new StringBuilder(Helper.GetRootDirectory(scope));
             sb.Append(SeparatorExternal);
-            sb.Append(IdentityHash);
-            sb.Append(SeparatorExternal);
+           // sb.Append(IdentityHash);
+           // sb.Append(SeparatorExternal);
 
-            if (Helper.IsApplication(scope))
+          /*  if (Helper.IsApplication(scope))
             {
                 sb.Append(s_appFiles);
             }
@@ -60,10 +60,67 @@ namespace System.IO.IsolatedStorage
             {
                 sb.Append(s_assemFiles);
             }
-            sb.Append(SeparatorExternal);
+            sb.Append(SeparatorExternal);*/
 
-            _rootDirectory = sb.ToString();
-            Helper.CreateDirectory(_rootDirectory, scope);
+            _rootDirectory = sb.ToString();//GetIsolatedStorageRoot(scope);
+            System.Diagnostics.Debug.Write("IsolatedStorageFile root is " + _rootDirectory);
+            System.Diagnostics.Debug.Write("IsolatedStorageFile scope is " + scope);
+
+            if(!Directory.Exists(_rootDirectory))
+              Helper.CreateDirectory(_rootDirectory, scope);
+        }
+
+        private static string GetIsolatedStorageRoot(IsolatedStorageScope scope)
+        {
+            // IsolatedStorageScope mixes several flags into one.
+            // This first level deals with the root directory - it
+            // is decided based on User, User+Roaming or Machine
+            string root = string.Empty;
+            //for iOS
+            //Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            if ((scope & IsolatedStorageScope.User) != 0) {
+                if ((scope & IsolatedStorageScope.Roaming) != 0) {
+                    root = UnixGetFolderPath (Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
+                    }
+                else {
+                    root = UnixGetFolderPath (Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create);
+                    }
+                } else if ((scope & IsolatedStorageScope.Machine) != 0) {
+                    root = UnixGetFolderPath (Environment.SpecialFolder.CommonApplicationData, Environment.SpecialFolderOption.Create);
+            }
+
+            if (root == null) {
+                //string msg = Locale.GetText ("Couldn't access storage location for '{0}'.");
+                //throw new IsolatedStorageException (String.Format (msg, scope));
+                return "";
+            }
+
+            return Path.Combine (root, ".isolated-storage");
+        }
+
+        private static string UnixGetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option)
+        {
+            string home = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            switch (folder) {
+                // use FDO's CONFIG_HOME. This data will be synced across a network like the windows counterpart.
+                case Environment.SpecialFolder.ApplicationData:
+                //for ios note: at first glance that looked like a good place to return NSLibraryDirectory
+                // but it would break isolated storage for existing applications
+                return Path.Combine (home, ".config");
+                //for android;
+                //return config;
+                //use FDO's DATA_HOME. This is *NOT* synced
+                case Environment.SpecialFolder.LocalApplicationData:
+                // for iOS
+                return home;
+                // for android
+                //return data;
+                // This is where data common to all users goes
+                case Environment.SpecialFolder.CommonApplicationData:
+                return "/usr/share";
+                default:
+                throw new ArgumentException ("Invalid SpecialFolder");
+            }
         }
 
         // Using this property to match .NET Framework for testing
@@ -691,7 +748,7 @@ namespace System.IO.IsolatedStorage
             // The static Remove() deletes ALL IsoStores for the given scope
             VerifyGlobalScope(scope);
 
-            string root = Helper.GetRootDirectory(scope);
+            string root = GetIsolatedStorageRoot(scope);//Helper.GetRootDirectory(scope);
 
             try
             {
